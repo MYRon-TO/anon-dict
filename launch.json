@@ -1,0 +1,9 @@
+{
+    "name": "Debug test_query_word",
+    "type": "lldb",
+    "request": "launch",
+    "cargo": {
+        "args": ["test", "--test", "test_query_word"],
+        "problemMatcher": "$rustc"
+    }
+}
