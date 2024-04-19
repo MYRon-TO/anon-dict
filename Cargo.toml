@@ -7,6 +7,5 @@ edition = "2021"
 
 [dependencies]
 lazy_static = "1.4.0"
-# rusqlite = { version = "0.31.0", features = ["bundled"] }
 tokio = { version = "1.37.0", features = ["full"] }
-sqlx = { version = "0.7", features = [ "runtime-tokio", "sqlite" ] }
+diesel = { version = "2.1.5", features = ["sqlite"] }
