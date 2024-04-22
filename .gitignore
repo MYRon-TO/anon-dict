@@ -1,3 +1,4 @@
 /target
-assets/stardict.db
+*.db
 Cargo.lock
+migrations/.keep

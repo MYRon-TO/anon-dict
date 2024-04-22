@@ -1,55 +1,42 @@
-mod levenshtein_distance;
-mod word_data;
+pub mod schema;
+pub mod word_data;
 
-use diesel::{prelude::*};
-use word_data::WordData;
+use dotenvy::dotenv;
+use std::env;
 
-const DB_PATH: &str = "sqlite:///home/Myron/Git/anon_dict/assets/stardict.db";
+use diesel::prelude::*;
+use diesel::r2d2::{ConnectionManager, Pool};
 
-pub struct DataBase {
-    connection: SqliteConnection,
+// use word_data::WordData;
+
+#[derive(Debug)]
+pub enum DbError {
+    ConnectionError(String),
 }
 
-// r#"
-// CREATE TABLE IF NOT EXISTS "stardict" (
-//     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
-//     "word" VARCHAR(64) COLLATE NOCASE NOT NULL UNIQUE,
-//     "sw" VARCHAR(64) COLLATE NOCASE NOT NULL,
-//     "phonetic" VARCHAR(64),
-//     "definition" TEXT,
-//     "translation" TEXT,
-//     "pos" VARCHAR(16),
-//     "collins" INTEGER DEFAULT(0),
-//     "oxford" INTEGER DEFAULT(0),
-//     "tag" VARCHAR(64),
-//     "bnc" INTEGER DEFAULT(NULL),
-//     "frq" INTEGER DEFAULT(NULL),
-//     "exchange" TEXT,
-//     "detail" TEXT,
-//     "audio" TEXT
-// );
-// CREATE UNIQUE INDEX IF NOT EXISTS "stardict_1" ON stardict (id);
-// CREATE UNIQUE INDEX IF NOT EXISTS "stardict_2" ON stardict (word);
-// CREATE INDEX IF NOT EXISTS "stardict_3" ON stardict (sw, word collate nocase);
-// CREATE INDEX IF NOT EXISTS "sd_1" ON stardict (word collate nocase);
-// "#
+pub struct DataBase {
+    pool: Pool<ConnectionManager<SqliteConnection>>,
+}
 
 impl DataBase {
-    pub async fn new() -> Result<DataBase, ConnectionError> {
-        let connection =
-            SqliteConnection::establish(DB_PATH)?;
-        Ok(DataBase { connection })
+
+    pub async fn new() -> Result<DataBase, DbError> {
+        dotenv().ok();
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+        // let pool = Pool::builder().build(ConnectionManager::<SqliteConnection>::new(database_url))?;
+        let pool = Pool::builder()
+            .max_size(10)
+            .build(ConnectionManager::<SqliteConnection>::new(database_url));
+
+        match pool {
+            Ok(pool) => Ok(DataBase { pool }),
+            Err(e) => Err(DbError::ConnectionError(e.to_string())),
+        }
     }
 
-    // pub async fn conn(&self) -> SqlitePool {
-    // }
+    pub async fn get_clone(&self) -> Pool<ConnectionManager<SqliteConnection>>  {
+        self.pool.clone()
+    }
 
-    // pub async fn search(&self, sql: &str) -> Result<Vec<WordData>> {
-    // }
-
-    // pub async fn search_from_word(&self, word: &str) -> Result<Vec<WordData>> {
-    // }
-
-    // pub async fn fuzzy_search_from_word(&self, word: &str, limit: i32) -> Result<Vec<WordData>> {
-    // }
 }
