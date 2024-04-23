@@ -1,9 +1,6 @@
 pub mod schema;
 pub mod word_data;
 
-use dotenvy::dotenv;
-use std::env;
-
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 
@@ -20,14 +17,11 @@ pub struct DataBase {
 
 impl DataBase {
 
-    pub async fn new() -> Result<DataBase, DbError> {
-        dotenv().ok();
-        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
+    pub async fn new(data_base_path:String) -> Result<DataBase, DbError> {
         // let pool = Pool::builder().build(ConnectionManager::<SqliteConnection>::new(database_url))?;
         let pool = Pool::builder()
             .max_size(10)
-            .build(ConnectionManager::<SqliteConnection>::new(database_url));
+            .build(ConnectionManager::<SqliteConnection>::new(data_base_path));
 
         match pool {
             Ok(pool) => Ok(DataBase { pool }),
